@@ -35,20 +35,22 @@ const sampleTexts: TextSource[] = [
   }
 ]
 
-// 青空文庫の人気作品（テキストファイルとして提供）
+// 青空文庫の人気作品（ローカルファイルとして提供）
+// 注意: 青空文庫のURLから直接取得することはCORS制限によりできません
+// そのため、ローカルファイルとして提供します
 const aozoraTexts: TextSource[] = [
   {
     id: 'aozora-1',
     name: '走れメロス（太宰治）',
-    type: 'aozora',
-    source: 'https://www.aozora.gr.jp/cards/000035/files/1567_14913.html',
+    type: 'local',
+    source: 'aozora-hashire-merosu.txt',
     description: '太宰治の短編小説'
   },
   {
     id: 'aozora-2',
     name: 'こころ（夏目漱石）',
-    type: 'aozora',
-    source: 'https://www.aozora.gr.jp/cards/000148/files/773_14560.html',
+    type: 'local',
+    source: 'aozora-kokoro.txt',
     description: '夏目漱石の長編小説'
   }
 ]
@@ -102,11 +104,24 @@ const extractTextFromAozora = (html: string): string => {
 // ローカルファイルを読み込む
 const loadLocalFile = async (filename: string): Promise<string> => {
   try {
-    // @ts-ignore - Vite dynamic import with variable filename
-    const module = await import(/* @vite-ignore */ `../data/${filename}?raw`)
-    return module.default
+    // Viteでは?rawは動的パスでは使えないため、ファイル名を直接指定
+    if (filename === 'sample1.txt') {
+      const module = await import('../data/sample1.txt?raw')
+      return module.default
+    } else if (filename === 'sample2.txt') {
+      const module = await import('../data/sample2.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-hashire-merosu.txt') {
+      const module = await import('../data/aozora-hashire-merosu.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-kokoro.txt') {
+      const module = await import('../data/aozora-kokoro.txt?raw')
+      return module.default
+    } else {
+      throw new Error(`Unknown file: ${filename}`)
+    }
   } catch (err) {
-    throw new Error(`Failed to load local file: ${filename}`)
+    throw new Error(`Failed to load local file: ${filename}. ${err instanceof Error ? err.message : 'Unknown error'}`)
   }
 }
 
@@ -139,6 +154,9 @@ export function useTextContent() {
           text = await loadLocalFile(source.source)
           break
         case 'aozora':
+          // 青空文庫のテキストはローカルファイルとして提供
+          text = await loadLocalFile(source.source)
+          break
         case 'url':
           text = await fetchTextFromUrl(source.source)
           // タイトルと著者を抽出（簡易版）

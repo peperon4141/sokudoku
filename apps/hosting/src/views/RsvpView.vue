@@ -26,16 +26,38 @@
       />
     </div>
 
-    <div v-else-if="!isPlaying" class="ready-screen text-center">
+    <div v-else-if="!isPlaying && !isCompleted" class="ready-screen text-center">
       <h2 class="text-3xl font-bold text-white mb-4">準備完了</h2>
       <p class="text-white mb-6">速度: {{ wpm }} WPM</p>
+      <p v-if="wordArray.length > 0" class="text-white mb-4 text-sm">読み込み済み: {{ wordArray.length }}語</p>
       <Button
         label="開始"
         icon="pi pi-play"
         severity="primary"
         size="large"
+        :disabled="wordArray.length === 0"
         @click="startReading"
       />
+      <p v-if="wordArray.length === 0" class="text-white mt-4 text-sm opacity-75">テキストを選択してください</p>
+    </div>
+
+    <div v-else-if="!isPlaying && isCompleted" class="completed-screen text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">読み取り完了</h2>
+      <p class="text-white mb-6">{{ wordArray.length }}語を読み取りました</p>
+      <div class="flex gap-4 justify-center">
+        <Button
+          label="もう一度"
+          icon="pi pi-refresh"
+          severity="secondary"
+          @click="restartReading"
+        />
+        <Button
+          label="戻る"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          @click="$router.push('/dashboard')"
+        />
+      </div>
     </div>
 
     <div v-else class="rsvp-display">
@@ -134,6 +156,7 @@ const { recordScore, getRecentScores, shouldAdjustSpeed } = useComprehension()
 
 const selectedWordListId = ref<string | null>(null)
 const isPlaying = ref(false)
+const isCompleted = ref(false)
 const currentWord = ref('')
 const currentWordIndex = ref(0)
 const wpm = ref(250)
@@ -144,7 +167,7 @@ const showComprehensionDialog = ref(false)
 const progress = ref(0)
 
 let intervalId: number | null = null
-let wordArray: string[] = []
+const wordArray = ref<string[]>([])
 
 const wordStyle = computed(() => ({
   fontSize: `${fontSize.value}px`,
@@ -155,26 +178,40 @@ const wordStyle = computed(() => ({
 }))
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {
-  if ('type' in source && source.type === 'words') {
-    // 単語リストの場合
-    selectedWordListId.value = source.id
-    await loadWords(source.id)
-    wordArray = [...words.value]
-  } else {
-    // テキストソースの場合
-    const textSource = source as TextSource
-    selectedWordListId.value = textSource.id
-    const content = await loadText(textSource)
-    wordArray = content.words
-  }
-  
-  if (wordArray.length > 0) {
-    currentWord.value = wordArray[0]
+  try {
+    if ('type' in source && source.type === 'words') {
+      // 単語リストの場合
+      selectedWordListId.value = source.id
+      await loadWords(source.id)
+      wordArray.value = [...words.value]
+    } else {
+      // テキストソースの場合
+      const textSource = source as TextSource
+      selectedWordListId.value = textSource.id
+      const content = await loadText(textSource)
+      wordArray.value = content.words
+    }
+    
+    isCompleted.value = false
+    
+    if (wordArray.value.length > 0) {
+      currentWord.value = wordArray.value[0]
+    }
+  } catch (err) {
+    console.error('Error in handleSourceSelect:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    // エラーダイアログを表示
+    alert(`テキストの読み込みに失敗しました。\n\n${errorMessage}\n\n別のテキストソースを選択してください。`)
+    // エラーが発生した場合は、選択をリセット
+    selectedWordListId.value = null
+    wordArray.value = []
   }
 }
 
 const startReading = () => {
-  if (wordArray.length === 0) return
+  if (wordArray.value.length === 0) {
+    return
+  }
   
   isPlaying.value = true
   currentWordIndex.value = 0
@@ -183,13 +220,13 @@ const startReading = () => {
   const delay = (60 / wpm.value) * 1000 // WPMをミリ秒に変換
   
   const showNextWord = () => {
-    if (currentWordIndex.value >= wordArray.length) {
+    if (currentWordIndex.value >= wordArray.value.length) {
       stopReading()
       return
     }
     
-    currentWord.value = wordArray[currentWordIndex.value]
-    progress.value = ((currentWordIndex.value + 1) / wordArray.length) * 100
+    currentWord.value = wordArray.value[currentWordIndex.value]
+    progress.value = ((currentWordIndex.value + 1) / wordArray.value.length) * 100
     currentWordIndex.value++
     
     // 理解度テストを定期的に実施（50語ごと）
@@ -215,9 +252,18 @@ const pauseReading = () => {
 const stopReading = () => {
   pauseReading()
   isPlaying.value = false
+  isCompleted.value = true
   currentWord.value = ''
+  progress.value = 100
+}
+
+const restartReading = () => {
+  isCompleted.value = false
   currentWordIndex.value = 0
   progress.value = 0
+  if (wordArray.value.length > 0) {
+    currentWord.value = wordArray.value[0]
+  }
 }
 
 const recordComprehension = (score: number) => {
@@ -235,7 +281,7 @@ const recordComprehension = (score: number) => {
   }
   
   // 読み続ける
-  if (currentWordIndex.value < wordArray.length) {
+  if (currentWordIndex.value < wordArray.value.length) {
     startReading()
   }
 }

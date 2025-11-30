@@ -168,20 +168,28 @@ const createChunks = (wordArray: string[]): string[] => {
 }
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {
-  if ('type' in source && source.type === 'words') {
-    selectedWordListId.value = source.id
-    await loadWords(source.id)
-    wordArray.value = [...words.value]
-  } else {
-    const textSource = source as TextSource
-    selectedWordListId.value = textSource.id
-    const content = await loadText(textSource)
-    wordArray.value = content.words
-  }
-  
-  chunks = createChunks(wordArray.value)
-  if (chunks.length > 0) {
-    currentChunk.value = chunks[0]
+  try {
+    if ('type' in source && source.type === 'words') {
+      selectedWordListId.value = source.id
+      await loadWords(source.id)
+      wordArray.value = [...words.value]
+    } else {
+      const textSource = source as TextSource
+      selectedWordListId.value = textSource.id
+      const content = await loadText(textSource)
+      wordArray.value = content.words
+    }
+    
+    chunks = createChunks(wordArray.value)
+    if (chunks.length > 0) {
+      currentChunk.value = chunks[0]
+    }
+  } catch (err) {
+    console.error('Error in handleSourceSelect:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    alert(`テキストの読み込みに失敗しました。\n\n${errorMessage}\n\n別のテキストソースを選択してください。`)
+    selectedWordListId.value = null
+    wordArray.value = []
   }
 }
 

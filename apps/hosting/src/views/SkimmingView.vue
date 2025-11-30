@@ -184,19 +184,27 @@ const highlightedText = computed(() => {
 })
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {
-  if ('type' in source && source.type === 'words') {
-    selectedWordListId.value = source.id
-    await loadWords(source.id)
-    wordArray = [...words.value]
-  } else {
-    const textSource = source as TextSource
-    selectedWordListId.value = textSource.id
-    const content = await loadText(textSource)
-    wordArray = content.words
+  try {
+    if ('type' in source && source.type === 'words') {
+      selectedWordListId.value = source.id
+      await loadWords(source.id)
+      wordArray = [...words.value]
+    } else {
+      const textSource = source as TextSource
+      selectedWordListId.value = textSource.id
+      const content = await loadText(textSource)
+      wordArray = content.words
+    }
+    
+    displayedText.value = wordArray.join(' ')
+    currentIndex.value = 0
+  } catch (err) {
+    console.error('Error in handleSourceSelect:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    alert(`テキストの読み込みに失敗しました。\n\n${errorMessage}\n\n別のテキストソースを選択してください。`)
+    selectedWordListId.value = null
+    wordArray = []
   }
-  
-  displayedText.value = wordArray.join(' ')
-  currentIndex.value = 0
 }
 
 const togglePlay = () => {
