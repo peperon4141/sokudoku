@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -22,11 +22,11 @@
     <div v-if="!selectedWordListId" class="word-list-selection min-h-screen flex items-center justify-center p-8">
       <TextSourceSelector
         @select="handleSourceSelect"
-        @cancel="$router.push('/')"
+        @cancel="$router.push('/methods')"
       />
     </div>
 
-    <div v-else-if="!isPlaying" class="ready-screen text-center">
+    <div v-else-if="!isPlaying && !isCompleted" class="ready-screen text-center">
       <h2 class="text-3xl font-bold text-white mb-4">ActiveRead（右脳速読）</h2>
       <div class="mb-6 space-y-2 text-white">
         <p>表示モード: {{ displayMode === 'whole' ? '全体把握' : 'イメージ処理' }}</p>
@@ -40,6 +40,25 @@
         size="large"
         @click="startReading"
       />
+    </div>
+
+    <div v-else-if="!isPlaying && isCompleted" class="completed-screen text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">読み取り完了</h2>
+      <p class="text-white mb-6">{{ wordArray.length }}語を読み取りました</p>
+      <div class="flex gap-4 justify-center">
+        <Button
+          label="もう一度"
+          icon="pi pi-refresh"
+          severity="secondary"
+          @click="restartReading"
+        />
+        <Button
+          label="戻る"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          @click="$router.push('/methods')"
+        />
+      </div>
     </div>
 
     <div v-else class="activeread-display">
@@ -169,6 +188,7 @@ const { recordScore } = useComprehension()
 
 const selectedWordListId = ref<string | null>(null)
 const isPlaying = ref(false)
+const isCompleted = ref(false)
 const displayMode = ref<'whole' | 'image'>('whole')
 const wpm = ref(400)
 const displayRange = ref(10)
@@ -195,7 +215,6 @@ const wholeTextStyle = computed(() => ({
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
   lineHeight: '2',
   maxWidth: '90%',
   margin: '0 auto'
@@ -206,7 +225,6 @@ const imageChunkStyle = computed(() => ({
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
   lineHeight: '1.5'
 }))
 
@@ -320,10 +338,19 @@ const pauseReading = () => {
 const stopReading = () => {
   pauseReading()
   isPlaying.value = false
+  isCompleted.value = true
   displayedText.value = ''
   currentChunk.value = ''
   currentIndex.value = 0
+  progress.value = 100
+}
+
+const restartReading = () => {
+  isCompleted.value = false
+  currentIndex.value = 0
   progress.value = 0
+  displayedText.value = ''
+  currentChunk.value = ''
 }
 
 const recordComprehension = (score: number) => {
@@ -414,6 +441,13 @@ onUnmounted(() => {
 }
 
 .word-list-selection {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.completed-screen {
   position: absolute;
   top: 50%;
   left: 50%;

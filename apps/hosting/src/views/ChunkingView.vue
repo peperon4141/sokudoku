@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -22,11 +22,11 @@
     <div v-if="!isPlaying && !selectedWordListId" class="word-list-selection">
       <TextSourceSelector
         @select="handleSourceSelect"
-        @cancel="$router.push('/')"
+        @cancel="$router.push('/methods')"
       />
     </div>
 
-    <div v-else-if="!isPlaying" class="ready-screen text-center">
+    <div v-else-if="!isPlaying && !isCompleted" class="ready-screen text-center">
       <h2 class="text-3xl font-bold text-white mb-4">準備完了</h2>
       <p class="text-white mb-6">速度: {{ wpm }} WPM | チャンクサイズ: {{ chunkSize }}語</p>
       <Button
@@ -38,9 +38,29 @@
       />
     </div>
 
+    <div v-else-if="!isPlaying && isCompleted" class="completed-screen text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">読み取り完了</h2>
+      <p class="text-white mb-6">{{ chunksCount }}チャンクを読み取りました</p>
+      <div class="flex gap-4 justify-center">
+        <Button
+          label="もう一度"
+          icon="pi pi-refresh"
+          severity="secondary"
+          @click="restartReading"
+        />
+        <Button
+          label="戻る"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          @click="$router.push('/methods')"
+        />
+      </div>
+    </div>
+
     <div v-else class="chunking-display">
       <div
         class="chunk-display"
+        :class="{ 'vertical-layout': layout === 'vertical' }"
         :style="chunkStyle"
       >
         {{ currentChunk }}
@@ -81,6 +101,17 @@
       :style="{ width: '600px' }"
     >
       <div class="flex flex-col gap-6">
+        <div>
+          <label class="block mb-2 font-medium">レイアウト</label>
+          <Select
+            v-model="layout"
+            :options="layoutOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+            :disabled="isPlaying"
+          />
+        </div>
         <div>
           <label class="block mb-2 font-medium">速度: {{ wpm }} WPM</label>
           <Slider
@@ -125,10 +156,13 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Slider from 'primevue/slider'
+import Select from 'primevue/select'
 import TextSourceSelector from '@/components/TextSourceSelector.vue'
 import { useWords } from '@/composables/useWords'
 import { useTextContent, type TextSource } from '@/composables/useTextContent'
 import { useComprehension } from '@/composables/useComprehension'
+
+type Layout = 'horizontal' | 'vertical'
 
 const { words, loadWords } = useWords()
 const { loadText } = useTextContent()
@@ -137,34 +171,44 @@ const wordArray = ref<string[]>([])
 
 const selectedWordListId = ref<string | null>(null)
 const isPlaying = ref(false)
+const isCompleted = ref(false)
 const currentChunk = ref('')
 const currentChunkIndex = ref(0)
 const wpm = ref(300)
 const chunkSize = ref(3)
 const fontSize = ref(48)
+const layout = ref<Layout>('horizontal')
 const showSettingsDialog = ref(false)
 const showComprehensionDialog = ref(false)
 const progress = ref(0)
 
 let intervalId: number | null = null
-let chunks: string[] = []
+const chunks = ref<string[]>([])
+
+const chunksCount = computed(() => chunks.value.length)
+
+const layoutOptions = [
+  { label: '横書き', value: 'horizontal' },
+  { label: '縦書き', value: 'vertical' }
+]
 
 const chunkStyle = computed(() => ({
   fontSize: `${fontSize.value}px`,
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
-  lineHeight: '1.5'
+  lineHeight: '1.5',
+  writingMode: layout.value === 'vertical' ? 'vertical-rl' : 'horizontal-tb',
+  textOrientation: layout.value === 'vertical' ? 'upright' : 'mixed'
 }))
 
-const createChunks = (wordArray: string[]): string[] => {
+const createChunks = (wordArray: string[]): void => {
   const result: string[] = []
   for (let i = 0; i < wordArray.length; i += chunkSize.value) {
     const chunk = wordArray.slice(i, i + chunkSize.value).join(' ')
     result.push(chunk)
   }
-  return result
+  chunks.value = result
 }
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {
@@ -180,9 +224,9 @@ const handleSourceSelect = async (source: TextSource | { id: string; type: 'word
       wordArray.value = content.words
     }
     
-    chunks = createChunks(wordArray.value)
-    if (chunks.length > 0) {
-      currentChunk.value = chunks[0]
+    createChunks(wordArray.value)
+    if (chunks.value.length > 0) {
+      currentChunk.value = chunks.value[0]
     }
   } catch (err) {
     console.error('Error in handleSourceSelect:', err)
@@ -194,23 +238,30 @@ const handleSourceSelect = async (source: TextSource | { id: string; type: 'word
 }
 
 const startReading = () => {
-  if (chunks.length === 0) return
+  if (chunks.value.length === 0) return
   
   isPlaying.value = true
+  isCompleted.value = false
   currentChunkIndex.value = 0
   progress.value = 0
   
   const delay = (60 / wpm.value) * 1000 // WPMをミリ秒に変換
   
   const showNextChunk = () => {
-    if (currentChunkIndex.value >= chunks.length) {
+    if (currentChunkIndex.value >= chunks.value.length) {
       stopReading()
       return
     }
     
-    currentChunk.value = chunks[currentChunkIndex.value]
-    progress.value = ((currentChunkIndex.value + 1) / chunks.length) * 100
+    currentChunk.value = chunks.value[currentChunkIndex.value]
+    progress.value = ((currentChunkIndex.value + 1) / chunks.value.length) * 100
     currentChunkIndex.value++
+    
+    // 完了チェック（理解度テストの前に）
+    if (currentChunkIndex.value >= chunks.value.length) {
+      stopReading()
+      return
+    }
     
     // 理解度テストを定期的に実施（20チャンクごと）
     if (currentChunkIndex.value % 20 === 0 && currentChunkIndex.value > 0) {
@@ -246,26 +297,39 @@ const recordComprehension = (score: number) => {
     wpm.value = Math.min(500, wpm.value + 10)
   }
   
-  // 読み続ける
-  if (currentChunkIndex.value < chunks.length) {
+  // 読み続ける（完了していない場合のみ）
+  if (currentChunkIndex.value < chunks.value.length && !isCompleted.value) {
     startReading()
+  } else if (currentChunkIndex.value >= chunks.value.length) {
+    // 既に完了している場合は完了画面を表示
+    stopReading()
   }
 }
 
 const stopReading = () => {
   pauseReading()
   isPlaying.value = false
+  isCompleted.value = true
   currentChunk.value = ''
   currentChunkIndex.value = 0
+  progress.value = 100
+}
+
+const restartReading = () => {
+  isCompleted.value = false
+  currentChunkIndex.value = 0
   progress.value = 0
+  if (chunks.value.length > 0) {
+    currentChunk.value = chunks.value[0]
+  }
 }
 
 // チャンクサイズが変更されたら再生成
 watch(chunkSize, () => {
   if (wordArray.value.length > 0) {
-    chunks = createChunks(wordArray.value)
-    if (chunks.length > 0 && !isPlaying.value) {
-      currentChunk.value = chunks[0]
+    createChunks(wordArray.value)
+    if (chunks.value.length > 0 && !isPlaying.value) {
+      currentChunk.value = chunks.value[0]
       currentChunkIndex.value = 0
     }
   }
@@ -333,6 +397,13 @@ onUnmounted(() => {
 }
 
 .word-list-selection {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.completed-screen {
   position: absolute;
   top: 50%;
   left: 50%;

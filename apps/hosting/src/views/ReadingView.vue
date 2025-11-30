@@ -17,7 +17,7 @@
             severity="secondary"
             outlined
             class="w-full"
-            @click="$router.push('/')"
+            @click="$router.push('/methods')"
           />
         </div>
       </template>
@@ -101,6 +101,8 @@ import Menu from 'primevue/menu'
 import Dialog from 'primevue/dialog'
 import Slider from 'primevue/slider'
 import { useWords, wordLists } from '@/composables/useWords'
+import { useProgress } from '@/composables/useProgress'
+import { useUserStats } from '@/composables/useUserStats'
 
 interface WordData {
   id: number
@@ -110,6 +112,8 @@ interface WordData {
 const route = useRoute()
 const router = useRouter()
 const { getRandomWord, loading, loadWords, error } = useWords()
+const { createSession, updateSession, completeSession } = useProgress()
+const { updateStats } = useUserStats()
 const selectedWordListId = ref<string | null>(null)
 const activeWords = ref<WordData[]>([])
 const speedMultiplier = ref(1.0)
@@ -118,6 +122,9 @@ const showSettingsDialog = ref(false)
 const menu = ref<InstanceType<typeof Menu> | null>(null)
 let wordIdCounter = 0
 let intervalId: number | null = null
+let currentSessionId: string | null = null
+let sessionStartTime: Date | null = null
+let wordsReadCount = 0
 
 const menuItems = computed<MenuItem[]>(() => [
   {
@@ -151,6 +158,16 @@ const selectWordList = async (wordListId: string) => {
   selectedWordListId.value = wordListId
   await loadWords(wordListId)
   
+  // セッションを開始
+  sessionStartTime = new Date()
+  const session = createSession('flying-words', {
+    speedMultiplier: speedMultiplier.value,
+    maxWords: maxWords.value,
+    wordListId
+  })
+  currentSessionId = session.id
+  wordsReadCount = 0
+  
   // 初回の単語を追加
   addWord()
   
@@ -182,6 +199,18 @@ const addWord = () => {
       id: wordIdCounter++,
       word
     })
+    wordsReadCount++
+    
+    // セッションを更新
+    if (currentSessionId && sessionStartTime) {
+      const duration = (new Date().getTime() - sessionStartTime.getTime()) / 1000 // 秒
+      const wpm = duration > 0 ? Math.round((wordsReadCount / duration) * 60) : 0
+      updateSession(currentSessionId, {
+        wordsRead: wordsReadCount,
+        averageWpm: wpm,
+        wordListId: selectedWordListId.value || undefined
+      })
+    }
   }
 }
 
@@ -192,14 +221,36 @@ const removeWord = (id: number) => {
   }
 }
 
-const goBack = () => {
+const goBack = async () => {
   if (intervalId !== null) {
     clearTimeout(intervalId)
     intervalId = null
   }
+  
+  // セッションを終了して保存
+  if (currentSessionId && sessionStartTime) {
+    const duration = (new Date().getTime() - sessionStartTime.getTime()) / 1000 // 秒
+    const wpm = duration > 0 ? Math.round((wordsReadCount / duration) * 60) : 0
+    updateSession(currentSessionId, {
+      wordsRead: wordsReadCount,
+      averageWpm: wpm,
+      averageComprehension: 0, // 飛ぶ単語モードでは理解度測定なし
+      wordListId: selectedWordListId.value || undefined
+    })
+    try {
+      await completeSession(currentSessionId)
+      await updateStats()
+    } catch (err) {
+      console.error('セッションの保存に失敗しました:', err)
+    }
+  }
+  
   activeWords.value = []
   selectedWordListId.value = null
-  router.push('/')
+  currentSessionId = null
+  sessionStartTime = null
+  wordsReadCount = 0
+  router.push('/methods')
 }
 
 onMounted(() => {

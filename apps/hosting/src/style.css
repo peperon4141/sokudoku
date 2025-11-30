@@ -17,3 +17,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 縦書きレイアウト */
+.vertical-layout {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+

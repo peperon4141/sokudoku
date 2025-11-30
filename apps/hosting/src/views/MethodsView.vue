@@ -1,8 +1,8 @@
 <template>
-  <div class="dashboard min-h-screen bg-surface-0 p-8">
+  <div class="methods-view min-h-screen bg-surface-0 p-8">
     <div class="max-w-6xl mx-auto">
       <div class="mb-8">
-        <h1 class="text-4xl font-bold mb-2">速読アプリ</h1>
+        <h1 class="text-4xl font-bold mb-2">練習メソッド</h1>
         <p class="text-surface-600">練習を選択して開始しましょう</p>
       </div>
 
@@ -107,7 +107,6 @@
         <Button label="閉じる" severity="secondary" @click="showInfoDialog = false" />
       </template>
     </Dialog>
-
   </div>
 </template>
 
@@ -144,7 +143,7 @@ const showMethodInfo = (method: ReadingMethod) => {
 </script>
 
 <style scoped>
-.dashboard {
+.methods-view {
   font-family: 'Noto Sans JP', sans-serif;
 }
 </style>

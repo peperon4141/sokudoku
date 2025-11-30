@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -85,7 +85,7 @@
       <div v-if="!selectedWordListId" class="word-list-selection">
         <TextSourceSelector
           @select="handleSourceSelect"
-          @cancel="$router.push('/')"
+          @cancel="$router.push('/methods')"
         />
       </div>
 
@@ -282,7 +282,6 @@ const wordStyle = computed(() => ({
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
 }))
 
 const getVisualCharStyle = (index: number) => {
@@ -401,7 +400,7 @@ const nextStep = () => {
       currentStep.value = 'comprehension'
       break
     case 'comprehension':
-      router.push('/')
+      router.push('/methods')
       break
   }
 }

@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -22,11 +22,11 @@
     <div v-if="!selectedWordListId" class="word-list-selection min-h-screen flex items-center justify-center p-8">
       <TextSourceSelector
         @select="handleSourceSelect"
-        @cancel="$router.push('/')"
+        @cancel="$router.push('/methods')"
       />
     </div>
 
-    <div v-else class="skimming-container p-8 max-w-4xl mx-auto">
+    <div v-else-if="!isCompleted" class="skimming-container p-8 max-w-4xl mx-auto">
       <div class="mb-6">
         <h2 class="text-2xl font-bold mb-2">スキミングモード</h2>
         <p class="text-surface-600">重要語句がハイライト表示されます</p>
@@ -66,6 +66,27 @@
       <div class="mt-4 flex justify-between items-center text-sm text-surface-600">
         <span>進捗: {{ currentIndex + 1 }} / {{ words.length }}</span>
         <span>重要語句: {{ importantWordsCount }}語</span>
+      </div>
+    </div>
+
+    <div v-else-if="isCompleted" class="completed-screen min-h-screen flex items-center justify-center">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-surface-900 mb-4">読み取り完了</h2>
+        <p class="text-surface-600 mb-6">{{ wordArray.length }}語を読み取りました</p>
+        <div class="flex gap-4 justify-center">
+          <Button
+            label="もう一度"
+            icon="pi pi-refresh"
+            severity="secondary"
+            @click="restartReading"
+          />
+          <Button
+            label="戻る"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            @click="$router.push('/methods')"
+          />
+        </div>
       </div>
     </div>
 
@@ -128,6 +149,7 @@ const { loadText } = useTextContent()
 
 const selectedWordListId = ref<string | null>(null)
 const isPlaying = ref(false)
+const isCompleted = ref(false)
 const currentIndex = ref(0)
 const importanceThreshold = ref(50)
 const displaySpeed = ref(200)
@@ -225,6 +247,7 @@ const start = () => {
   const showNextWord = () => {
     if (currentIndex.value >= wordArray.length) {
       pause()
+      isCompleted.value = true
       return
     }
     
@@ -251,6 +274,12 @@ const pause = () => {
     intervalId = null
   }
   isPlaying.value = false
+}
+
+const restartReading = () => {
+  isCompleted.value = false
+  currentIndex.value = 0
+  displayedText.value = wordArray.join(' ')
 }
 
 // 重要度閾値が変更されたら再計算
@@ -287,6 +316,10 @@ onUnmounted(() => {
 
 .text-content :deep(span) {
   transition: all 0.2s ease;
+}
+
+.completed-screen {
+  background-color: var(--surface-0);
 }
 </style>
 

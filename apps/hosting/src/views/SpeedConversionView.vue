@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -22,7 +22,7 @@
     <div v-if="!selectedWordListId" class="word-list-selection">
       <TextSourceSelector
         @select="handleSourceSelect"
-        @cancel="$router.push('/')"
+        @cancel="$router.push('/methods')"
       />
     </div>
 
@@ -54,6 +54,7 @@
 
       <div
         class="word-display"
+        :class="{ 'vertical-layout': layout === 'vertical' }"
         :style="wordStyle"
       >
         {{ currentWord }}
@@ -90,6 +91,17 @@
       :style="{ width: '600px' }"
     >
       <div class="flex flex-col gap-6">
+        <div>
+          <label class="block mb-2 font-medium">レイアウト</label>
+          <Select
+            v-model="layout"
+            :options="layoutOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+            :disabled="isPlaying"
+          />
+        </div>
         <div>
           <label class="block mb-2 font-medium">開始速度: {{ baseWpm }} WPM</label>
           <Slider
@@ -173,7 +185,14 @@
             @click="startNextSession"
           />
           <Button
-            label="終了"
+            label="もう一度"
+            icon="pi pi-refresh"
+            severity="secondary"
+            @click="restartTraining"
+          />
+          <Button
+            label="戻る"
+            icon="pi pi-arrow-left"
             severity="secondary"
             @click="finishTraining"
           />
@@ -190,10 +209,13 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Slider from 'primevue/slider'
 import Checkbox from 'primevue/checkbox'
+import Select from 'primevue/select'
 import TextSourceSelector from '@/components/TextSourceSelector.vue'
 import { useWords } from '@/composables/useWords'
 import { useTextContent, type TextSource } from '@/composables/useTextContent'
 import { useComprehension } from '@/composables/useComprehension'
+
+type Layout = 'horizontal' | 'vertical'
 
 const router = useRouter()
 const { words, loadWords } = useWords()
@@ -210,6 +232,7 @@ const totalSessions = ref(5)
 const currentSession = ref(1)
 const speedMultiplier = ref(1.0)
 const fontSize = ref(48)
+const layout = ref<Layout>('horizontal')
 const showSettingsDialog = ref(false)
 const showComprehensionCheck = ref(false)
 const showSessionCompleteDialog = ref(false)
@@ -219,6 +242,11 @@ const wordsRead = ref(0)
 
 let intervalId: number | null = null
 let wordArray: string[] = []
+
+const layoutOptions = [
+  { label: '横書き', value: 'horizontal' },
+  { label: '縦書き', value: 'vertical' }
+]
 
 const currentWpm = computed(() => Math.round(baseWpm.value * speedMultiplier.value))
 const nextSpeedMultiplier = computed(() => {
@@ -234,7 +262,8 @@ const wordStyle = computed(() => ({
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+  writingMode: layout.value === 'vertical' ? 'vertical-rl' : 'horizontal-tb',
+  textOrientation: layout.value === 'vertical' ? 'upright' : 'mixed'
 }))
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {
@@ -344,12 +373,21 @@ const recordComprehension = (score: number) => {
   }
 }
 
+const restartTraining = () => {
+  showSessionCompleteDialog.value = false
+  currentSession.value = 1
+  speedMultiplier.value = 1.0
+  wordsRead.value = 0
+  currentWordIndex.value = 0
+  progress.value = 0
+}
+
 const finishTraining = () => {
   showSessionCompleteDialog.value = false
   currentSession.value = 1
   speedMultiplier.value = 1.0
   wordsRead.value = 0
-  router.push('/')
+  router.push('/methods')
 }
 
 onMounted(() => {

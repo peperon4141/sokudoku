@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -22,7 +22,7 @@
     <div v-if="!isPlaying && !selectedWordListId" class="word-list-selection">
       <TextSourceSelector
         @select="handleSourceSelect"
-        @cancel="$router.push('/')"
+        @cancel="$router.push('/methods')"
       />
     </div>
 
@@ -55,7 +55,7 @@
           label="戻る"
           icon="pi pi-arrow-left"
           severity="secondary"
-          @click="$router.push('/dashboard')"
+          @click="$router.push('/methods')"
         />
       </div>
     </div>
@@ -63,6 +63,7 @@
     <div v-else class="rsvp-display">
       <div
         class="word-display"
+        :class="{ 'vertical-layout': layout === 'vertical' }"
         :style="wordStyle"
       >
         {{ currentWord }}
@@ -82,6 +83,17 @@
       :style="{ width: '600px' }"
     >
       <div class="flex flex-col gap-6">
+        <div>
+          <label class="block mb-2 font-medium">レイアウト</label>
+          <Select
+            v-model="layout"
+            :options="layoutOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+            :disabled="isPlaying"
+          />
+        </div>
         <div>
           <label class="block mb-2 font-medium">速度: {{ wpm }} WPM</label>
           <Slider
@@ -145,6 +157,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Slider from 'primevue/slider'
 import Checkbox from 'primevue/checkbox'
+import Select from 'primevue/select'
 import TextSourceSelector from '@/components/TextSourceSelector.vue'
 import { useWords } from '@/composables/useWords'
 import { useTextContent, type TextSource } from '@/composables/useTextContent'
@@ -154,6 +167,8 @@ const { words, loadWords } = useWords()
 const { loadText } = useTextContent()
 const { recordScore, getRecentScores, shouldAdjustSpeed } = useComprehension()
 
+type Layout = 'horizontal' | 'vertical'
+
 const selectedWordListId = ref<string | null>(null)
 const isPlaying = ref(false)
 const isCompleted = ref(false)
@@ -161,6 +176,7 @@ const currentWord = ref('')
 const currentWordIndex = ref(0)
 const wpm = ref(250)
 const fontSize = ref(48)
+const layout = ref<Layout>('horizontal')
 const showSettingsDialog = ref(false)
 const showComprehensionWarning = ref(true)
 const showComprehensionDialog = ref(false)
@@ -169,12 +185,18 @@ const progress = ref(0)
 let intervalId: number | null = null
 const wordArray = ref<string[]>([])
 
+const layoutOptions = [
+  { label: '横書き', value: 'horizontal' },
+  { label: '縦書き', value: 'vertical' }
+]
+
 const wordStyle = computed(() => ({
   fontSize: `${fontSize.value}px`,
   color: '#ffffff',
   fontWeight: 'bold',
   textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+  writingMode: layout.value === 'vertical' ? 'vertical-rl' : 'horizontal-tb',
+  textOrientation: layout.value === 'vertical' ? 'upright' : 'mixed'
 }))
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {

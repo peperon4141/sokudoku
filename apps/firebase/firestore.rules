@@ -5,6 +5,26 @@ service cloud.firestore {
     match /users/{userId} {
       // ユーザーは自分のデータを読み書きできる
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Progress records subcollection
+      match /progress/{progressId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Goals subcollection
+      match /goals/{goalId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Achievements subcollection
+      match /achievements/{achievementId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Stats document
+      match /stats/{statsId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }

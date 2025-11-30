@@ -52,6 +52,41 @@ const aozoraTexts: TextSource[] = [
     type: 'local',
     source: 'aozora-kokoro.txt',
     description: '夏目漱石の長編小説'
+  },
+  {
+    id: 'aozora-3',
+    name: '羅生門（芥川龍之介）',
+    type: 'local',
+    source: 'aozora-rashomon.txt',
+    description: '芥川龍之介の代表作。平安時代の京都を舞台にした短編小説'
+  },
+  {
+    id: 'aozora-4',
+    name: '銀河鉄道の夜（宮沢賢治）',
+    type: 'local',
+    source: 'aozora-ginga-tetsudo.txt',
+    description: '宮沢賢治のファンタジー小説。少年の夢の旅を描いた名作'
+  },
+  {
+    id: 'aozora-5',
+    name: '人間失格（太宰治）',
+    type: 'local',
+    source: 'aozora-ningen-shikkaku.txt',
+    description: '太宰治の自伝的小説。人間の本質を問う作品'
+  },
+  {
+    id: 'aozora-6',
+    name: '吾輩は猫である（夏目漱石）',
+    type: 'local',
+    source: 'aozora-wagahai.txt',
+    description: '夏目漱石のユーモア小説。猫の視点から人間を描く'
+  },
+  {
+    id: 'aozora-7',
+    name: '蜘蛛の糸（芥川龍之介）',
+    type: 'local',
+    source: 'aozora-kumo-no-ito.txt',
+    description: '芥川龍之介の短編小説。仏教的な教訓を含む作品'
   }
 ]
 
@@ -116,6 +151,21 @@ const loadLocalFile = async (filename: string): Promise<string> => {
       return module.default
     } else if (filename === 'aozora-kokoro.txt') {
       const module = await import('../data/aozora-kokoro.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-rashomon.txt') {
+      const module = await import('../data/aozora-rashomon.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-ginga-tetsudo.txt') {
+      const module = await import('../data/aozora-ginga-tetsudo.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-ningen-shikkaku.txt') {
+      const module = await import('../data/aozora-ningen-shikkaku.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-wagahai.txt') {
+      const module = await import('../data/aozora-wagahai.txt?raw')
+      return module.default
+    } else if (filename === 'aozora-kumo-no-ito.txt') {
+      const module = await import('../data/aozora-kumo-no-ito.txt?raw')
       return module.default
     } else {
       throw new Error(`Unknown file: ${filename}`)

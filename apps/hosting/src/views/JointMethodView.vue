@@ -14,7 +14,7 @@
         severity="secondary"
         outlined
         rounded
-        @click="$router.push('/')"
+        @click="$router.push('/methods')"
         aria-label="戻る"
       />
     </div>
@@ -316,8 +316,7 @@ const flashWordStyle = computed(() => ({
   fontSize: `${fontSize.value}px`,
   color: '#ffffff',
   fontWeight: 'bold',
-  textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+  textAlign: 'center' as const
 }))
 
 const parallelGridStyle = computed(() => ({
@@ -329,16 +328,14 @@ const parallelWordStyle = computed(() => ({
   fontSize: `${fontSize.value * 0.8}px`,
   color: '#ffffff',
   fontWeight: 'bold',
-  textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+  textAlign: 'center' as const
 }))
 
 const patternWordStyle = computed(() => ({
   fontSize: `${fontSize.value}px`,
   color: '#ffffff',
   fontWeight: 'bold',
-  textAlign: 'center' as const,
-  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)'
+  textAlign: 'center' as const
 }))
 
 const handleSourceSelect = async (source: TextSource | { id: string; type: 'words' }) => {

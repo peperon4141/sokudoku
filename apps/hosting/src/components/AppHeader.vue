@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
-          <router-link to="/dashboard" class="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
+          <router-link to="/progress" class="flex items-center gap-2 text-primary hover:text-primary-600 transition-colors">
             <i class="pi pi-book text-2xl"></i>
             <span class="text-xl font-semibold">速読アプリ</span>
           </router-link>
@@ -65,10 +65,17 @@ const menuItems = computed<MenuItem[]>(() => [
     separator: true
   },
   {
-    label: 'ダッシュボード',
-    icon: 'pi pi-home',
+    label: '練習メソッド',
+    icon: 'pi pi-book',
     command: () => {
-      router.push('/dashboard')
+      router.push('/methods')
+    }
+  },
+  {
+    label: '進捗管理',
+    icon: 'pi pi-chart-line',
+    command: () => {
+      router.push('/progress')
     }
   },
   {

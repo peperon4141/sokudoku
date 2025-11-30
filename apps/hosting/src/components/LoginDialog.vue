@@ -68,11 +68,11 @@ const closeModal = () => {
   emit('close')
 }
 
-// ログイン成功後、認証状態が更新されたらダッシュボードにリダイレクト
+// ログイン成功後、認証状態が更新されたら進捗管理にリダイレクト
 watch(isAuthenticated, (authenticated) => {
   if (authenticated && loginSuccess.value) {
     closeModal()
-    router.push('/dashboard')
+    router.push('/progress')
   }
 })
 

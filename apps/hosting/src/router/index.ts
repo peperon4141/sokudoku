@@ -3,16 +3,28 @@ import { useAuth } from '@/composables/useAuth'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Home', component: () => import('../views/Home.vue'), meta: { layout: 'top' } },
-  { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true, layout: 'dashboard' } },
+  { path: '/methods', name: 'Methods', component: () => import('../views/MethodsView.vue'), meta: { requiresAuth: true, layout: 'dashboard' } },
+  { path: '/progress', name: 'Progress', component: () => import('../views/ProgressView.vue'), meta: { requiresAuth: true, layout: 'dashboard' } },
   { path: '/reading', name: 'Reading', component: () => import('../views/ReadingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
-  { path: '/reading/rsvp', name: 'Rsvp', component: () => import('../views/RsvpView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  // 統合トレーニング方法（新規）
+  { path: '/reading/sequential-display', name: 'SequentialDisplay', component: () => import('../views/RsvpView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/chunking', name: 'Chunking', component: () => import('../views/ChunkingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/field-expansion', name: 'FieldExpansion', component: () => import('../views/SPMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/skimming', name: 'Skimming', component: () => import('../views/SkimmingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/cognitive-training', name: 'CognitiveTraining', component: () => import('../views/JointMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/saccade-training', name: 'SaccadeTraining', component: () => import('../views/SaccadeTrainingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/peripheral-vision', name: 'PeripheralVision', component: () => import('../views/PeripheralVisionView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/subvocalization-control', name: 'SubvocalizationControl', component: () => import('../views/SubvocalizationControlView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/eye-movement', name: 'EyeMovement', component: () => import('../views/EyeMovementView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  // 既存のルート（後方互換性のため残す）
+  { path: '/reading/rsvp', name: 'Rsvp', component: () => import('../views/RsvpView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/park-sasaki', name: 'ParkSasaki', component: () => import('../views/ParkSasakiView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/speed-conversion', name: 'SpeedConversion', component: () => import('../views/SpeedConversionView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/joint-method', name: 'JointMethod', component: () => import('../views/JointMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/activeread', name: 'ActiveRead', component: () => import('../views/ActiveReadView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/sp-method', name: 'SPMethod', component: () => import('../views/SPMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  // 論文リーディングモード（私的利用向け）
+  { path: '/reading/papers', name: 'PaperReading', component: () => import('../views/PaperReadingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
 ]
 
 // Router guard for authentication
@@ -45,9 +57,9 @@ export const setupRouter = (router: Router) => {
       return
     }
     
-    // 認証済みでホームページへのアクセスの場合はダッシュボードにリダイレクト
+    // 認証済みでホームページへのアクセスの場合は進捗管理にリダイレクト
     if (isAuthenticated.value && to.path === '/') {
-      next('/dashboard')
+      next('/progress')
       return
     }
     
