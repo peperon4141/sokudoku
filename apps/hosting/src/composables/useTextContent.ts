@@ -102,7 +102,8 @@ const extractTextFromAozora = (html: string): string => {
 // ローカルファイルを読み込む
 const loadLocalFile = async (filename: string): Promise<string> => {
   try {
-    const module = await import(`../data/${filename}?raw`)
+    // @ts-ignore - Vite dynamic import with variable filename
+    const module = await import(/* @vite-ignore */ `../data/${filename}?raw`)
     return module.default
   } catch (err) {
     throw new Error(`Failed to load local file: ${filename}`)

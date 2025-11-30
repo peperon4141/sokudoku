@@ -154,7 +154,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Slider from 'primevue/slider'
@@ -164,7 +163,6 @@ import { useWords } from '@/composables/useWords'
 import { useTextContent, type TextSource } from '@/composables/useTextContent'
 import { useComprehension } from '@/composables/useComprehension'
 
-const router = useRouter()
 const { words, loadWords } = useWords()
 const { loadText } = useTextContent()
 const { recordScore } = useComprehension()

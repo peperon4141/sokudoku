@@ -56,7 +56,8 @@ export function useWords() {
       
       if (wordList.type === 'text') {
         // テキストファイルを読み込んで単語に分割
-        const textModule = await import(`../data/${wordList.file}?raw`)
+        // @ts-ignore - Vite dynamic import with variable filename
+        const textModule = await import(/* @vite-ignore */ `../data/${wordList.file}?raw`)
         const text = textModule.default
         // 句読点や記号を除去して単語に分割
         const cleaned = text.replace(/[。、，．「」『』（）【】［］｛｝〈〉《》]/g, ' ')

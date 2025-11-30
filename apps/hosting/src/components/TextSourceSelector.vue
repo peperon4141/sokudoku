@@ -3,7 +3,7 @@
     <template #title>テキストソースを選択</template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <Tabs v-model="activeTabIndex">
+        <Tabs v-model:value="activeTabIndex">
           <TabList>
             <Tab header="サンプル文章" value="0" />
             <Tab header="テキスト入力" value="1" />

@@ -266,7 +266,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -278,7 +277,6 @@ import { useComprehension } from '@/composables/useComprehension'
 
 type TrainingMode = 'flash' | 'parallel' | 'pattern' | null
 
-const router = useRouter()
 const { words, loadWords } = useWords()
 const { loadText } = useTextContent()
 const { recordScore } = useComprehension()
