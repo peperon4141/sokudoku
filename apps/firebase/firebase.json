@@ -1,0 +1,47 @@
+{
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-northeast1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "hosting_contents",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "emulators": {
+    "hosting": {
+      "port": 50505,
+      "host": "127.0.0.1"
+    },
+    "auth": {
+      "port": 50501,
+      "host": "127.0.0.1"
+    },
+    "firestore": {
+      "port": 50506,
+      "host": "127.0.0.1"
+    },
+    "ui": {
+      "enabled": true,
+      "port": 50503,
+      "host": "127.0.0.1"
+    },
+    "singleProjectMode": true,
+    "hub": {
+      "port": 50500,
+      "host": "127.0.0.1"
+    }
+  }
+}
+

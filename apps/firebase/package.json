@@ -1,0 +1,21 @@
+{
+  "name": "firebase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm start",
+    "lint": "eslint . --ext .js,.ts",
+    "lint:fix": "eslint . --ext .js,.ts --fix",
+    "ports": "jq -r '.emulators | to_entries[] | select(.value | type == \"object\" and has(\"port\")) | .value.port' firebase.json | tr '\\n' ' '",
+    "start": "firebase emulators:start --config firebase.json --project sokudoku --import=./firebase-data --export-on-exit=./firebase-data --only auth,firestore,hosting",
+    "stop": "pnpm -F firebase ports | xargs -n1 sh -c 'lsof -ti:\"$1\" 2>/dev/null | xargs kill -9 2>/dev/null' _"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "eslint": "^9.38.0"
+  }
+}
+

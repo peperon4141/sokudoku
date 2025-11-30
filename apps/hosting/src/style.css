@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+@import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom styles for Sokudoku */
+body {
+  font-family: 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* アイコンを太めにする */
+.pi,
+[class^="pi-"],
+[class*=" pi-"] {
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
