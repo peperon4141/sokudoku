@@ -5,13 +5,13 @@
       <div class="flex flex-col gap-4">
         <Tabs v-model:value="activeTabIndex">
           <TabList>
-            <Tab header="サンプル文章" value="0" />
-            <Tab header="テキスト入力" value="1" />
-            <Tab header="ファイルアップロード" value="2" />
-            <Tab header="単語リスト" value="3" />
+            <Tab v-if="showTextTabs" header="サンプル文章" value="0" />
+            <Tab v-if="showTextTabs" header="テキスト入力" value="1" />
+            <Tab v-if="showTextTabs" header="ファイルアップロード" value="2" />
+            <Tab v-if="showWordTabs" header="単語リスト" value="3" />
           </TabList>
 
-          <TabPanel value="0">
+          <TabPanel v-if="showTextTabs" value="0">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
               <Button
                 v-for="source in sampleTexts"
@@ -28,7 +28,7 @@
             </div>
           </TabPanel>
 
-          <TabPanel value="1">
+          <TabPanel v-if="showTextTabs" value="1">
             <div class="mt-4">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="md:col-span-1">
@@ -58,11 +58,11 @@
             </div>
           </TabPanel>
 
-          <TabPanel value="2">
+          <TabPanel v-if="showTextTabs" value="2">
             <div class="mt-4">
               <FileUpload
                 mode="basic"
-                accept=".txt,.csv"
+                accept=".txt"
                 :maxFileSize="10000000"
                 chooseLabel="ファイルを選択"
                 @select="onFileSelect"
@@ -74,10 +74,10 @@
             </div>
           </TabPanel>
 
-          <TabPanel value="3">
+          <TabPanel v-if="showWordTabs" value="3">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
               <Button
-                v-for="wordList in wordLists.filter(wl => wl.type === 'words')"
+                v-for="wordList in wordLists"
                 :key="wordList.id"
                 :label="wordList.name"
                 severity="secondary"
@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -119,6 +119,14 @@ import TabPanel from 'primevue/tabpanel'
 import { useTextContent, type TextSource } from '@/composables/useTextContent'
 import { wordLists } from '@/composables/useWords'
 
+interface Props {
+  mode?: 'words' | 'text' | 'both'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  mode: 'both'
+})
+
 const emit = defineEmits<{
   select: [source: TextSource | { id: string; type: 'words' }]
   cancel: []
@@ -130,6 +138,20 @@ const activeTabIndex = ref('0')
 const customTitle = ref('')
 const customText = ref('')
 const uploadedFileName = ref('')
+
+// モードに応じて表示するタブを制御
+const showTextTabs = computed(() => props.mode === 'text' || props.mode === 'both')
+const showWordTabs = computed(() => props.mode === 'words' || props.mode === 'both')
+
+// 初期タブを設定
+const initialTab = computed(() => {
+  if (props.mode === 'words') return '3'
+  if (props.mode === 'text') return '0'
+  return '0'
+})
+
+// アクティブなタブを初期化
+activeTabIndex.value = initialTab.value
 
 const selectSource = (source: TextSource) => {
   emit('select', source)

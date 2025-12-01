@@ -8,14 +8,12 @@ export interface WordList {
   id: string
   name: string
   file: string
-  type: 'words' | 'text'
+  type: 'words'
 }
 
 export const wordLists: WordList[] = [
   { id: 'general', name: '一般単語', file: 'words.csv', type: 'words' },
   { id: 'law', name: '法律単語', file: 'words-law.csv', type: 'words' },
-  { id: 'sample1', name: 'サンプル文章1', file: 'sample1.txt', type: 'text' },
-  { id: 'sample2', name: 'サンプル文章2', file: 'sample2.txt', type: 'text' },
 ]
 
 const words = ref<string[]>([])
@@ -54,29 +52,19 @@ export function useWords() {
         throw new Error(`Word list not found: ${wordListId}`)
       }
       
-      if (wordList.type === 'text') {
-        // テキストファイルを読み込んで単語に分割
-        // @ts-ignore - Vite dynamic import with variable filename
-        const textModule = await import(/* @vite-ignore */ `../data/${wordList.file}?raw`)
-        const text = textModule.default
-        // 句読点や記号を除去して単語に分割
-        const cleaned = text.replace(/[。、，．「」『』（）【】［］｛｝〈〉《》]/g, ' ')
-        words.value = cleaned.split(/\s+/).filter((word: string) => word.length > 0)
+      // CSVファイルを読み込む
+      let csvText: string
+      if (wordListId === 'general') {
+        const csvModule = await import('../data/words.csv?raw')
+        csvText = csvModule.default
+      } else if (wordListId === 'law') {
+        const csvModule = await import('../data/words-law.csv?raw')
+        csvText = csvModule.default
       } else {
-        // CSVファイルを読み込む（従来の方法）
-        let csvText: string
-        if (wordListId === 'general') {
-          const csvModule = await import('../data/words.csv?raw')
-          csvText = csvModule.default
-        } else if (wordListId === 'law') {
-          const csvModule = await import('../data/words-law.csv?raw')
-          csvText = csvModule.default
-        } else {
-          throw new Error(`Unknown word list: ${wordListId}`)
-        }
-        
-        words.value = parseCsv(csvText)
+        throw new Error(`Unknown word list: ${wordListId}`)
       }
+      
+      words.value = parseCsv(csvText)
       
       if (words.value.length === 0) {
         throw new Error('No words loaded')

@@ -23,6 +23,15 @@ const routes: RouteRecordRaw[] = [
   { path: '/reading/joint-method', name: 'JointMethod', component: () => import('../views/JointMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/activeread', name: 'ActiveRead', component: () => import('../views/ActiveReadView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/sp-method', name: 'SPMethod', component: () => import('../views/SPMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  // SP速読学院メソッド（練習メソッド2）
+  { path: '/reading/reading-speed-test', name: 'ReadingSpeedTest', component: () => import('../views/ReadingSpeedTestView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/eye-stretch', name: 'EyeStretch', component: () => import('../views/EyeStretchView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/word-recognition', name: 'WordRecognition', component: () => import('../views/WordRecognitionView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/word-recognition-scatter', name: 'WordRecognitionScatter', component: () => import('../views/WordRecognitionScatterView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/word-image', name: 'WordImage', component: () => import('../views/WordImageView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/parallel-reading', name: 'ParallelReading', component: () => import('../views/ParallelReadingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/vision-up', name: 'VisionUp', component: () => import('../views/VisionUpView.vue'), meta: { requiresAuth: true, layout: 'training' } },
+  { path: '/reading/phrase-reading', name: 'PhraseReading', component: () => import('../views/PhraseReadingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
 ]
 
 // Router guard for authentication
