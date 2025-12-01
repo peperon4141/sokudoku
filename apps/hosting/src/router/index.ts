@@ -23,8 +23,6 @@ const routes: RouteRecordRaw[] = [
   { path: '/reading/joint-method', name: 'JointMethod', component: () => import('../views/JointMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/activeread', name: 'ActiveRead', component: () => import('../views/ActiveReadView.vue'), meta: { requiresAuth: true, layout: 'training' } },
   { path: '/reading/sp-method', name: 'SPMethod', component: () => import('../views/SPMethodView.vue'), meta: { requiresAuth: true, layout: 'training' } },
-  // 論文リーディングモード（私的利用向け）
-  { path: '/reading/papers', name: 'PaperReading', component: () => import('../views/PaperReadingView.vue'), meta: { requiresAuth: true, layout: 'training' } },
 ]
 
 // Router guard for authentication
